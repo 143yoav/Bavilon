@@ -1,41 +1,25 @@
 import express from 'express';
 import routes from './api/routes/tweetsRoutes';
 import bodyParser from 'body-parser';
-import mongodb from 'mongodb';
+import dbConfig from './config/db';
+import pg from 'pg';
 
 const port = process.env.PORT || 3000;
 const app = express();
-const dbClient = mongodb.MongoClient;
 
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.json());
 
 const connectionString = process.env.connection_string;
+const client = new pg.Client(connectionString);
+client.connect().then(
+  async val => {
+    await dbConfig(client);
 
-dbClient.connect(connectionString, async (err, database) => {
-  if (err) {
-    console.log(err);
-  } else {
-    let isValid = await validateDataBase(database.db('tweets_db'));
-    if (isValid) {
-      routes(app, database.db('tweets_db'));
-      app.listen(port);
-      console.log('We are live on port ', port);
-    } else {
-      console.log('DB is not valid');
-    }
+    routes(app, client);
+    app.listen(port, () => console.log('Live on : ', port));
+  },
+  reason => {
+    console.log(reason);
   }
-});
-
-const validateDataBase = async db => {
-  let result = false;
-  const cols = await db.listCollections().toArray();
-
-  cols.forEach(element => {
-    if (element.name == 'tweets') {
-      result = true;
-    }
-  });
-
-  return result;
-};
+);

@@ -11,9 +11,9 @@ services:
     depends_on:
       - postgres
     environment:
-      connection_string: mongodb://dbUser:Password1@ds111390.mlab.com:11390/tweets_db
+      connection_string: postgres://localhost:5432/postgres
   postgres:
     image: postgres:9.6.2-alpine
     environment:
-      POSTGRES_USER: todoapp
-      POSTGRES_DB: todos
+      POSTGRES_USER: postgres
+      POSTGRES_DB: postgres
